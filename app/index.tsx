@@ -3,6 +3,7 @@ import Constants from 'expo-constants';
 import { WebView } from 'react-native-webview';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 import * as Permissions from 'expo-permissions';
+import { useEffect } from 'react';
 
 export default function WebViewScreen() {
     // JavaScript to inject into WebView to handle microphone permissions
@@ -25,6 +26,19 @@ export default function WebViewScreen() {
             return originalGetUserMedia.apply(this, arguments);
         };
     `;
+
+    useEffect(() => {
+        async function requestMicrophonePermission() {
+            const { status } = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
+            if (status !== 'granted') {
+                Alert.alert('Разрешение требуется', 'Доступ к микрофону необходим для работы приложения');
+            }
+        }
+
+        requestMicrophonePermission();
+    }, []);
+
+
     return (
         <View style={styles.container}>
             <ExpoStatusBar style="dark" />
@@ -45,7 +59,7 @@ export default function WebViewScreen() {
                             // Request microphone permission when the website tries to access it
                             if (Platform.OS === 'ios') {
                                 Permissions.askAsync(Permissions.AUDIO_RECORDING)
-                                    .then(({status}) => {
+                                    .then(({ status }) => {
                                         if (status !== 'granted') {
                                             Alert.alert('Permission required', 'Microphone access is required for this feature');
                                         }
